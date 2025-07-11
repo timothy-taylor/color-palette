@@ -40,16 +40,6 @@ function PageManager.new()
 
     self.current_page = 1
     self.keyboard_mode = false
-    
-    -- Create graph objects for waveform visualization
-    self.lfo_a_graph = Graph.new(1, 64, "lin", -1, 1, "lin", "line", false, false)
-    self.lfo_a_graph:set_position_and_size(10, 15, 108, 30)
-    
-    self.lfo_b_graph = Graph.new(1, 64, "lin", -1, 1, "lin", "line", false, false)
-    self.lfo_b_graph:set_position_and_size(10, 15, 108, 30)
-    
-    -- Pass graph references to LFO engine once initialized
-    self.graphs_initialized = false
 
     return self
 end
@@ -184,17 +174,11 @@ function PageManager:draw_lfo_a_page()
     screen.rect(10, 15, 108, 30)
     screen.stroke()
 
-    -- Initialize graph references if needed
-    if self.lfo_engine and not self.graphs_initialized then
-        self.lfo_engine:set_lfo_a_graph(self.lfo_a_graph)
-        self.lfo_engine:set_lfo_b_graph(self.lfo_b_graph)
-        self.graphs_initialized = true
-    end
     
     -- Draw waveform using lib.graph (points added in LFO action)
-    if self.lfo_engine then        
+    if self.lfo_engine and self.lfo_engine.lfo_a_graph then        
         -- Draw the graph
-        self.lfo_a_graph:redraw()
+        self.lfo_engine.lfo_a_graph:redraw()
         
         -- Current value indicator
         local lfo_value = self.lfo_engine:get_lfo_a_value()
@@ -257,9 +241,9 @@ function PageManager:draw_lfo_b_page()
     screen.stroke()
 
     -- Draw waveform using lib.graph (points added in LFO action)
-    if self.lfo_engine then        
+    if self.lfo_engine and self.lfo_engine.lfo_b_graph then        
         -- Draw the graph
-        self.lfo_b_graph:redraw()
+        self.lfo_engine.lfo_b_graph:redraw()
         
         -- Current value indicator
         local lfo_value = self.lfo_engine:get_lfo_b_value()

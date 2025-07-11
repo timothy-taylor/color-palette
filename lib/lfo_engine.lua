@@ -50,9 +50,13 @@ function LfoEngine:create_lfos()
     self.lfo_a:set('mode', 'free')
     self.lfo_a:set('period', 1 / self.lfo_a_rate)
     self.lfo_a:set('action', function(scaled, raw)
-        -- Update graph directly using circular buffer
         if self.lfo_a_graph then
-            self.lfo_a_graph:add_point(self.lfo_a_graph_index, scaled, nil, nil, self.lfo_a_graph_index)
+            -- Debug: print every 10th update to avoid spam
+            if self.lfo_a_graph_index % 10 == 1 then
+                print("LFO A: idx=" .. self.lfo_a_graph_index .. " val=" .. string.format("%.2f", scaled))
+            end
+            -- Update existing point using edit_point
+            self.lfo_a_graph:edit_point(self.lfo_a_graph_index, self.lfo_a_graph_index, scaled)
             self.lfo_a_graph_index = self.lfo_a_graph_index + 1
             if self.lfo_a_graph_index > self.lfo_a_graph_size then
                 self.lfo_a_graph_index = 1
@@ -69,9 +73,13 @@ function LfoEngine:create_lfos()
     self.lfo_b:set('mode', 'free')
     self.lfo_b:set('period', 1 / self.lfo_b_rate)
     self.lfo_b:set('action', function(scaled, raw)
-        -- Update graph directly using circular buffer
         if self.lfo_b_graph then
-            self.lfo_b_graph:add_point(self.lfo_b_graph_index, scaled, nil, nil, self.lfo_b_graph_index)
+            -- Debug: print every 10th update to avoid spam
+            if self.lfo_b_graph_index % 10 == 1 then
+                print("LFO B: idx=" .. self.lfo_b_graph_index .. " val=" .. string.format("%.2f", scaled))
+            end
+            -- Update existing point using edit_point
+            self.lfo_b_graph:edit_point(self.lfo_b_graph_index, self.lfo_b_graph_index, scaled)
             self.lfo_b_graph_index = self.lfo_b_graph_index + 1
             if self.lfo_b_graph_index > self.lfo_b_graph_size then
                 self.lfo_b_graph_index = 1
@@ -209,7 +217,6 @@ function LfoEngine:get_lfo_b_value()
     return 0
 end
 
-
 function LfoEngine:set_lfo_a_graph(graph)
     self.lfo_a_graph = graph
     if graph then
@@ -249,7 +256,7 @@ function LfoEngine:recreate_lfo_a()
     self.lfo_a:set('action', function(scaled, raw)
         -- Update graph directly using circular buffer
         if self.lfo_a_graph then
-            self.lfo_a_graph:add_point(self.lfo_a_graph_index, scaled, nil, nil, self.lfo_a_graph_index)
+            self.lfo_a_graph:edit_point(self.lfo_a_graph_index, self.lfo_a_graph_index, scaled)
             self.lfo_a_graph_index = self.lfo_a_graph_index + 1
             if self.lfo_a_graph_index > self.lfo_a_graph_size then
                 self.lfo_a_graph_index = 1
@@ -277,7 +284,7 @@ function LfoEngine:recreate_lfo_b()
     self.lfo_b:set('action', function(scaled, raw)
         -- Update graph directly using circular buffer
         if self.lfo_b_graph then
-            self.lfo_b_graph:add_point(self.lfo_b_graph_index, scaled, nil, nil, self.lfo_b_graph_index)
+            self.lfo_b_graph:edit_point(self.lfo_b_graph_index, self.lfo_b_graph_index, scaled)
             self.lfo_b_graph_index = self.lfo_b_graph_index + 1
             if self.lfo_b_graph_index > self.lfo_b_graph_size then
                 self.lfo_b_graph_index = 1
