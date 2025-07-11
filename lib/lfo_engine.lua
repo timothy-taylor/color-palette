@@ -11,9 +11,6 @@ function LfoEngine.new()
     self.lfo_a_shape = "sine"
     self.lfo_a_depth = 1.0
     self.lfo_a_value = 0
-    
-    -- Debug: Print initial values
-    print("LFO A initialized: rate=" .. self.lfo_a_rate .. " shape=" .. self.lfo_a_shape .. " depth=" .. self.lfo_a_depth)
 
     -- Graph settings for visualization
     self.lfo_a_graph = nil
@@ -54,8 +51,10 @@ function LfoEngine:create_lfos()
     self.lfo_a:set('period', 1 / self.lfo_a_rate)
     self.lfo_a:set('action', function(scaled, raw)
         self.lfo_a_value = scaled
-        -- Debug to see if this is being called
-        print("LFO A callback: scaled=" .. string.format("%.2f", scaled))
+        -- Temporary debug - remove once working
+        if math.random() < 0.1 then
+            print("LFO: " .. string.format("%.2f", scaled))
+        end
     end)
 
     -- Create LFO B
@@ -71,17 +70,8 @@ function LfoEngine:create_lfos()
     end)
 
     -- Start both LFOs
-    print("Starting LFO A...")
     self.lfo_a:start()
-    print("Starting LFO B...")
     self.lfo_b:start()
-    print("Both LFOs started!")
-    
-    -- Wait a moment and check values
-    clock.run(function()
-        clock.sleep(0.1)
-        print("After 0.1s: LFO A value = " .. string.format("%.2f", self.lfo_a_value))
-    end)
 end
 
 function LfoEngine:get_combined_output()
@@ -236,10 +226,6 @@ function LfoEngine:update_visualization()
         for i, value in ipairs(self.lfo_a_buffer) do
             -- Clamp value to graph domain
             local clamped_value = math.max(-1, math.min(1, value))
-            -- Debug first few points
-            if i <= 3 then
-                print("LFO A: x=" .. i .. " y=" .. string.format("%.2f", value) .. " clamped=" .. string.format("%.2f", clamped_value))
-            end
             self.lfo_a_graph:add_point(i, clamped_value)
         end
     end
