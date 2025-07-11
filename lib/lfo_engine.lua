@@ -53,16 +53,14 @@ function LfoEngine:create_lfos()
     self.lfo_a:set('period', 1 / self.lfo_a_rate)
     print("LFO A parameters set, adding action callback...")
     self.lfo_a:set('action', function(scaled, raw)
-        print("LFO A action called! scaled=" .. string.format("%.2f", scaled))
         if self.lfo_a_graph then
-            -- Update existing point using edit_point
-            self.lfo_a_graph:edit_point(self.lfo_a_graph_index, self.lfo_a_graph_index, scaled)
+            -- Update existing point using edit_point (index, px, py)
+            -- Find the point index first (points are 1-indexed in the graph)
+            self.lfo_a_graph:edit_point(self.lfo_a_graph_index, nil, scaled)
             self.lfo_a_graph_index = self.lfo_a_graph_index + 1
             if self.lfo_a_graph_index > self.lfo_a_graph_size then
                 self.lfo_a_graph_index = 1
             end
-        else
-            print("No graph available in LFO A action")
         end
     end)
 
@@ -76,12 +74,8 @@ function LfoEngine:create_lfos()
     self.lfo_b:set('period', 1 / self.lfo_b_rate)
     self.lfo_b:set('action', function(scaled, raw)
         if self.lfo_b_graph then
-            -- Debug: print every 10th update to avoid spam
-            if self.lfo_b_graph_index % 10 == 1 then
-                print("LFO B: idx=" .. self.lfo_b_graph_index .. " val=" .. string.format("%.2f", scaled))
-            end
             -- Update existing point using edit_point
-            self.lfo_b_graph:edit_point(self.lfo_b_graph_index, self.lfo_b_graph_index, scaled)
+            self.lfo_b_graph:edit_point(self.lfo_b_graph_index, nil, scaled)
             self.lfo_b_graph_index = self.lfo_b_graph_index + 1
             if self.lfo_b_graph_index > self.lfo_b_graph_size then
                 self.lfo_b_graph_index = 1
@@ -229,7 +223,7 @@ function LfoEngine:set_lfo_a_graph(graph)
         print("Initializing " .. self.lfo_a_graph_size .. " graph points...")
         -- Initialize all graph points to 0
         for i = 1, self.lfo_a_graph_size do
-            self.lfo_a_graph:add_point(i, 0, nil, nil, i)
+            self.lfo_a_graph:add_point(i, 0)
         end
         print("LFO A graph initialized with " .. self.lfo_a_graph_size .. " points")
     else
@@ -244,7 +238,7 @@ function LfoEngine:set_lfo_b_graph(graph)
         print("Initializing " .. self.lfo_b_graph_size .. " graph points...")
         -- Initialize all graph points to 0
         for i = 1, self.lfo_b_graph_size do
-            self.lfo_b_graph:add_point(i, 0, nil, nil, i)
+            self.lfo_b_graph:add_point(i, 0)
         end
         print("LFO B graph initialized with " .. self.lfo_b_graph_size .. " points")
     else
@@ -271,7 +265,7 @@ function LfoEngine:recreate_lfo_a()
     self.lfo_a:set('action', function(scaled, raw)
         -- Update graph directly using circular buffer
         if self.lfo_a_graph then
-            self.lfo_a_graph:edit_point(self.lfo_a_graph_index, self.lfo_a_graph_index, scaled)
+            self.lfo_a_graph:edit_point(self.lfo_a_graph_index, nil, scaled)
             self.lfo_a_graph_index = self.lfo_a_graph_index + 1
             if self.lfo_a_graph_index > self.lfo_a_graph_size then
                 self.lfo_a_graph_index = 1
@@ -299,7 +293,7 @@ function LfoEngine:recreate_lfo_b()
     self.lfo_b:set('action', function(scaled, raw)
         -- Update graph directly using circular buffer
         if self.lfo_b_graph then
-            self.lfo_b_graph:edit_point(self.lfo_b_graph_index, self.lfo_b_graph_index, scaled)
+            self.lfo_b_graph:edit_point(self.lfo_b_graph_index, nil, scaled)
             self.lfo_b_graph_index = self.lfo_b_graph_index + 1
             if self.lfo_b_graph_index > self.lfo_b_graph_size then
                 self.lfo_b_graph_index = 1
