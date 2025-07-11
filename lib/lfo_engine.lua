@@ -41,26 +41,28 @@ function LfoEngine.new()
 end
 
 function LfoEngine:create_lfos()
+    print("Creating LFO A...")
     -- Create LFO A
     self.lfo_a = Lfo.new()
+    print("LFO A created, setting parameters...")
     self.lfo_a:set('shape', self.lfo_a_shape)
     self.lfo_a:set('min', -1)
     self.lfo_a:set('max', 1)
     self.lfo_a:set('depth', self.lfo_a_depth)
     self.lfo_a:set('mode', 'free')
     self.lfo_a:set('period', 1 / self.lfo_a_rate)
+    print("LFO A parameters set, adding action callback...")
     self.lfo_a:set('action', function(scaled, raw)
+        print("LFO A action called! scaled=" .. string.format("%.2f", scaled))
         if self.lfo_a_graph then
-            -- Debug: print every 10th update to avoid spam
-            if self.lfo_a_graph_index % 10 == 1 then
-                print("LFO A: idx=" .. self.lfo_a_graph_index .. " val=" .. string.format("%.2f", scaled))
-            end
             -- Update existing point using edit_point
             self.lfo_a_graph:edit_point(self.lfo_a_graph_index, self.lfo_a_graph_index, scaled)
             self.lfo_a_graph_index = self.lfo_a_graph_index + 1
             if self.lfo_a_graph_index > self.lfo_a_graph_size then
                 self.lfo_a_graph_index = 1
             end
+        else
+            print("No graph available in LFO A action")
         end
     end)
 
@@ -88,8 +90,11 @@ function LfoEngine:create_lfos()
     end)
 
     -- Start both LFOs
+    print("Starting LFO A...")
     self.lfo_a:start()
+    print("Starting LFO B...")
     self.lfo_b:start()
+    print("Both LFOs started!")
 end
 
 function LfoEngine:get_combined_output()
@@ -218,22 +223,32 @@ function LfoEngine:get_lfo_b_value()
 end
 
 function LfoEngine:set_lfo_a_graph(graph)
+    print("Setting LFO A graph...")
     self.lfo_a_graph = graph
     if graph then
+        print("Initializing " .. self.lfo_a_graph_size .. " graph points...")
         -- Initialize all graph points to 0
         for i = 1, self.lfo_a_graph_size do
             self.lfo_a_graph:add_point(i, 0, nil, nil, i)
         end
+        print("LFO A graph initialized with " .. self.lfo_a_graph_size .. " points")
+    else
+        print("No graph provided to set_lfo_a_graph")
     end
 end
 
 function LfoEngine:set_lfo_b_graph(graph)
+    print("Setting LFO B graph...")
     self.lfo_b_graph = graph
     if graph then
+        print("Initializing " .. self.lfo_b_graph_size .. " graph points...")
         -- Initialize all graph points to 0
         for i = 1, self.lfo_b_graph_size do
             self.lfo_b_graph:add_point(i, 0, nil, nil, i)
         end
+        print("LFO B graph initialized with " .. self.lfo_b_graph_size .. " points")
+    else
+        print("No graph provided to set_lfo_b_graph")
     end
 end
 
