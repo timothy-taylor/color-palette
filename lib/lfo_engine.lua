@@ -11,11 +11,11 @@ function LfoEngine.new()
     self.lfo_a_shape = "sine"
     self.lfo_a_depth = 1.0
     self.lfo_a_value = 0
-    
-    -- Waveform buffer for visualization
-    self.lfo_a_buffer = {}
-    self.lfo_a_buffer_size = 64
+
+    -- Graph settings for visualization
     self.lfo_a_graph = nil
+    self.lfo_a_graph_size = 64
+    self.lfo_a_graph_index = 1
 
     -- LFO B settings
     self.lfo_b = nil
@@ -23,11 +23,11 @@ function LfoEngine.new()
     self.lfo_b_shape = "triangle"
     self.lfo_b_depth = 1.0
     self.lfo_b_value = 0
-    
-    -- Waveform buffer for visualization
-    self.lfo_b_buffer = {}
-    self.lfo_b_buffer_size = 64
+
+    -- Graph settings for visualization
     self.lfo_b_graph = nil
+    self.lfo_b_graph_size = 64
+    self.lfo_b_graph_index = 1
 
     -- Modulation settings
     self.mod_type = "mix"
@@ -50,17 +50,12 @@ function LfoEngine:create_lfos()
     self.lfo_a:set('mode', 'free')
     self.lfo_a:set('period', 1 / self.lfo_a_rate)
     self.lfo_a:set('action', function(scaled, raw)
-        -- Add to waveform buffer for visualization
-        table.insert(self.lfo_a_buffer, scaled)
-        if #self.lfo_a_buffer > self.lfo_a_buffer_size then
-            table.remove(self.lfo_a_buffer, 1)
-        end
-        
-        -- Update graph if exists
+        -- Update graph directly using circular buffer
         if self.lfo_a_graph then
-            self.lfo_a_graph:remove_all_points()
-            for i, v in ipairs(self.lfo_a_buffer) do
-                self.lfo_a_graph:add_point(i, v)
+            self.lfo_a_graph:add_point(self.lfo_a_graph_index, scaled, nil, nil, self.lfo_a_graph_index)
+            self.lfo_a_graph_index = self.lfo_a_graph_index + 1
+            if self.lfo_a_graph_index > self.lfo_a_graph_size then
+                self.lfo_a_graph_index = 1
             end
         end
     end)
@@ -74,17 +69,12 @@ function LfoEngine:create_lfos()
     self.lfo_b:set('mode', 'free')
     self.lfo_b:set('period', 1 / self.lfo_b_rate)
     self.lfo_b:set('action', function(scaled, raw)
-        -- Add to waveform buffer for visualization
-        table.insert(self.lfo_b_buffer, scaled)
-        if #self.lfo_b_buffer > self.lfo_b_buffer_size then
-            table.remove(self.lfo_b_buffer, 1)
-        end
-        
-        -- Update graph if exists
+        -- Update graph directly using circular buffer
         if self.lfo_b_graph then
-            self.lfo_b_graph:remove_all_points()
-            for i, v in ipairs(self.lfo_b_buffer) do
-                self.lfo_b_graph:add_point(i, v)
+            self.lfo_b_graph:add_point(self.lfo_b_graph_index, scaled, nil, nil, self.lfo_b_graph_index)
+            self.lfo_b_graph_index = self.lfo_b_graph_index + 1
+            if self.lfo_b_graph_index > self.lfo_b_graph_size then
+                self.lfo_b_graph_index = 1
             end
         end
     end)
@@ -219,20 +209,25 @@ function LfoEngine:get_lfo_b_value()
     return 0
 end
 
-function LfoEngine:get_lfo_a_buffer()
-    return self.lfo_a_buffer
-end
-
-function LfoEngine:get_lfo_b_buffer()
-    return self.lfo_b_buffer
-end
 
 function LfoEngine:set_lfo_a_graph(graph)
     self.lfo_a_graph = graph
+    if graph then
+        -- Initialize all graph points to 0
+        for i = 1, self.lfo_a_graph_size do
+            self.lfo_a_graph:add_point(i, 0, nil, nil, i)
+        end
+    end
 end
 
 function LfoEngine:set_lfo_b_graph(graph)
     self.lfo_b_graph = graph
+    if graph then
+        -- Initialize all graph points to 0
+        for i = 1, self.lfo_b_graph_size do
+            self.lfo_b_graph:add_point(i, 0, nil, nil, i)
+        end
+    end
 end
 
 -- Helper functions to recreate LFOs
@@ -240,6 +235,9 @@ function LfoEngine:recreate_lfo_a()
     if self.lfo_a then
         self.lfo_a:stop()
     end
+
+    -- Reset graph index
+    self.lfo_a_graph_index = 1
 
     self.lfo_a = Lfo.new()
     self.lfo_a:set('shape', self.lfo_a_shape)
@@ -249,17 +247,12 @@ function LfoEngine:recreate_lfo_a()
     self.lfo_a:set('mode', 'free')
     self.lfo_a:set('period', 1 / self.lfo_a_rate)
     self.lfo_a:set('action', function(scaled, raw)
-        -- Add to waveform buffer for visualization
-        table.insert(self.lfo_a_buffer, scaled)
-        if #self.lfo_a_buffer > self.lfo_a_buffer_size then
-            table.remove(self.lfo_a_buffer, 1)
-        end
-        
-        -- Update graph if exists
+        -- Update graph directly using circular buffer
         if self.lfo_a_graph then
-            self.lfo_a_graph:remove_all_points()
-            for i, v in ipairs(self.lfo_a_buffer) do
-                self.lfo_a_graph:add_point(i, v)
+            self.lfo_a_graph:add_point(self.lfo_a_graph_index, scaled, nil, nil, self.lfo_a_graph_index)
+            self.lfo_a_graph_index = self.lfo_a_graph_index + 1
+            if self.lfo_a_graph_index > self.lfo_a_graph_size then
+                self.lfo_a_graph_index = 1
             end
         end
     end)
@@ -271,6 +264,9 @@ function LfoEngine:recreate_lfo_b()
         self.lfo_b:stop()
     end
 
+    -- Reset graph index
+    self.lfo_b_graph_index = 1
+
     self.lfo_b = Lfo.new()
     self.lfo_b:set('shape', self.lfo_b_shape)
     self.lfo_b:set('min', -1)
@@ -279,17 +275,12 @@ function LfoEngine:recreate_lfo_b()
     self.lfo_b:set('mode', 'free')
     self.lfo_b:set('period', 1 / self.lfo_b_rate)
     self.lfo_b:set('action', function(scaled, raw)
-        -- Add to waveform buffer for visualization
-        table.insert(self.lfo_b_buffer, scaled)
-        if #self.lfo_b_buffer > self.lfo_b_buffer_size then
-            table.remove(self.lfo_b_buffer, 1)
-        end
-        
-        -- Update graph if exists
+        -- Update graph directly using circular buffer
         if self.lfo_b_graph then
-            self.lfo_b_graph:remove_all_points()
-            for i, v in ipairs(self.lfo_b_buffer) do
-                self.lfo_b_graph:add_point(i, v)
+            self.lfo_b_graph:add_point(self.lfo_b_graph_index, scaled, nil, nil, self.lfo_b_graph_index)
+            self.lfo_b_graph_index = self.lfo_b_graph_index + 1
+            if self.lfo_b_graph_index > self.lfo_b_graph_size then
+                self.lfo_b_graph_index = 1
             end
         end
     end)
