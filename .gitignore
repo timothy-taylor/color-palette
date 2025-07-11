@@ -1,0 +1,8 @@
+# Ignore all markdown files except README.md
+*.md
+!README.md
+
+# Common norns ignores
+.DS_Store
+*.tmp
+*.log
