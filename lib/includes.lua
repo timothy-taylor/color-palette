@@ -6,8 +6,8 @@ engine.name = "PolyPerc"
 -- Core norns libraries
 Util = require("util")
 MusicUtil = require("musicutil")
-Lfo = require("lib/lfo")
-Graph = require("lib/graph")
+Lfo = require("lfo")
+Graph = require("graph")
 
 -- LFO shapes
 LFO_SHAPES = {
@@ -20,12 +20,7 @@ LFO_SHAPES = {
 }
 
 -- Global application state
-State = {
-    screen_dirty = true,
-    lfo_a_value = 0,
-    lfo_b_value = 0,
-    combined_lfo_value = 0
-}
+State = {}
 
 -- Color Mixer modules
 PageManager = include("lib/page_manager")

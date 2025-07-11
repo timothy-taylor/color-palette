@@ -40,28 +40,17 @@ function PageManager.new()
 
     self.current_page = 1
     self.keyboard_mode = false
-    self.key_states = { false, false, false }
 
     return self
 end
 
 -- Navigation
-function PageManager:handle_key(n, z)
-    self.key_states[n] = (z == 1)
-
-    if z == 1 then -- Key press
-        -- Check for simultaneous KEY 2 + KEY 3 press
-        if self.key_states[2] and self.key_states[3] then
-            self:toggle_keyboard_mode()
-            return
-        end
-
-        -- Single key navigation
-        if n == 2 then
-            self:next_page()
-        elseif n == 3 then
-            self:prev_page()
-        end
+function PageManager:handle_key(n)
+    print(n)
+    if n == 2 then
+        self:next_page()
+    elseif n == 3 then
+        self:prev_page()
     end
 end
 
@@ -187,13 +176,22 @@ function PageManager:draw_lfo_a_page()
 
     -- Show current LFO A value as a simple indicator
     if self.lfo_engine then
-        local lfo_value = State.lfo_a_value or 0
+        local lfo_value = self.lfo_engine:get_lfo_a_value()
         local center_x = 64
         local center_y = 30
-        local radius = math.abs(lfo_value) * 10
+        local base_radius = 8
+        local mod_radius = lfo_value * 6 -- Can be negative
+        local total_radius = base_radius + mod_radius
 
-        screen.level(12)
-        screen.circle(center_x, center_y, radius)
+        -- Ensure minimum radius
+        if total_radius < 2 then total_radius = 2 end
+
+        -- Vary brightness based on LFO value
+        local brightness = math.floor(8 + (lfo_value * 4))
+        brightness = util.clamp(brightness, 3, 15)
+
+        screen.level(brightness)
+        screen.circle(center_x, center_y, total_radius)
         screen.stroke()
 
         -- Value indicator
@@ -257,13 +255,22 @@ function PageManager:draw_lfo_b_page()
 
     -- Show current LFO B value as a simple indicator
     if self.lfo_engine then
-        local lfo_value = State.lfo_b_value or 0
+        local lfo_value = self.lfo_engine:get_lfo_b_value()
         local center_x = 64
         local center_y = 30
-        local radius = math.abs(lfo_value) * 10
+        local base_radius = 8
+        local mod_radius = lfo_value * 6 -- Can be negative
+        local total_radius = base_radius + mod_radius
 
-        screen.level(12)
-        screen.circle(center_x, center_y, radius)
+        -- Ensure minimum radius
+        if total_radius < 2 then total_radius = 2 end
+
+        -- Vary brightness based on LFO value
+        local brightness = math.floor(8 + (lfo_value * 4))
+        brightness = util.clamp(brightness, 3, 15)
+
+        screen.level(brightness)
+        screen.circle(center_x, center_y, total_radius)
         screen.stroke()
 
         -- Value indicator
@@ -331,7 +338,7 @@ function PageManager:draw_modulation_page()
     if self.lfo_engine then
         screen.level(12)
         screen.move(22, 32)
-        screen.text_center(string.format("%.1f", State.lfo_a_value or 0))
+        screen.text_center(string.format("%.1f", self.lfo_engine:get_lfo_a_value()))
     end
 
     -- LFO B box with value
@@ -343,7 +350,7 @@ function PageManager:draw_modulation_page()
     if self.lfo_engine then
         screen.level(12)
         screen.move(105, 32)
-        screen.text_center(string.format("%.1f", State.lfo_b_value or 0))
+        screen.text_center(string.format("%.1f", self.lfo_engine:get_lfo_b_value()))
     end
 
     -- Output box with combined value
@@ -355,7 +362,7 @@ function PageManager:draw_modulation_page()
     if self.lfo_engine then
         screen.level(15)
         screen.move(64, 47)
-        screen.text_center(string.format("%.2f", State.combined_lfo_value or 0))
+        screen.text_center(string.format("%.2f", self.lfo_engine:get_combined_output()))
     end
 
     -- Modulation type
