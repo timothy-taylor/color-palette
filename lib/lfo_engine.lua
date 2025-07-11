@@ -58,11 +58,10 @@ function LfoEngine:create_lfos()
         
         -- Update graph if exists
         if self.lfo_a_graph then
-            local points = {}
+            self.lfo_a_graph:remove_all_points()
             for i, v in ipairs(self.lfo_a_buffer) do
-                points[i] = {x = i, y = v}
+                self.lfo_a_graph:add_point(i, v)
             end
-            self.lfo_a_graph:set_points(points)
         end
     end)
 
@@ -83,11 +82,10 @@ function LfoEngine:create_lfos()
         
         -- Update graph if exists
         if self.lfo_b_graph then
-            local points = {}
+            self.lfo_b_graph:remove_all_points()
             for i, v in ipairs(self.lfo_b_buffer) do
-                points[i] = {x = i, y = v}
+                self.lfo_b_graph:add_point(i, v)
             end
-            self.lfo_b_graph:set_points(points)
         end
     end)
 
@@ -256,6 +254,14 @@ function LfoEngine:recreate_lfo_a()
         if #self.lfo_a_buffer > self.lfo_a_buffer_size then
             table.remove(self.lfo_a_buffer, 1)
         end
+        
+        -- Update graph if exists
+        if self.lfo_a_graph then
+            self.lfo_a_graph:remove_all_points()
+            for i, v in ipairs(self.lfo_a_buffer) do
+                self.lfo_a_graph:add_point(i, v)
+            end
+        end
     end)
     self.lfo_a:start()
 end
@@ -277,6 +283,14 @@ function LfoEngine:recreate_lfo_b()
         table.insert(self.lfo_b_buffer, scaled)
         if #self.lfo_b_buffer > self.lfo_b_buffer_size then
             table.remove(self.lfo_b_buffer, 1)
+        end
+        
+        -- Update graph if exists
+        if self.lfo_b_graph then
+            self.lfo_b_graph:remove_all_points()
+            for i, v in ipairs(self.lfo_b_buffer) do
+                self.lfo_b_graph:add_point(i, v)
+            end
         end
     end)
     self.lfo_b:start()
