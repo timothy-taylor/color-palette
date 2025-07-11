@@ -51,6 +51,10 @@ function LfoEngine:create_lfos()
     self.lfo_a:set('period', 1 / self.lfo_a_rate)
     self.lfo_a:set('action', function(scaled, raw)
         self.lfo_a_value = scaled
+        -- Debug to see if this is being called
+        if math.random() < 0.01 then -- 1% chance to print
+            print("LFO A callback: scaled=" .. string.format("%.2f", scaled))
+        end
     end)
 
     -- Create LFO B
@@ -220,7 +224,13 @@ function LfoEngine:update_visualization()
     if self.lfo_a_graph then
         self.lfo_a_graph:remove_all_points()
         for i, value in ipairs(self.lfo_a_buffer) do
-            self.lfo_a_graph:add_point(i, value)
+            -- Clamp value to graph domain
+            local clamped_value = math.max(-1, math.min(1, value))
+            -- Debug first few points
+            if i <= 3 then
+                print("LFO A: x=" .. i .. " y=" .. string.format("%.2f", value) .. " clamped=" .. string.format("%.2f", clamped_value))
+            end
+            self.lfo_a_graph:add_point(i, clamped_value)
         end
     end
     
