@@ -15,6 +15,8 @@ function LfoEngine.new()
     -- Waveform buffer for visualization
     self.lfo_a_buffer = {}
     self.lfo_a_buffer_size = 64
+    self.lfo_a_point_index = 1
+    self.lfo_a_graph = nil
 
     -- LFO B settings
     self.lfo_b = nil
@@ -26,6 +28,8 @@ function LfoEngine.new()
     -- Waveform buffer for visualization
     self.lfo_b_buffer = {}
     self.lfo_b_buffer_size = 64
+    self.lfo_b_point_index = 1
+    self.lfo_b_graph = nil
 
     -- Modulation settings
     self.mod_type = "mix"
@@ -53,6 +57,16 @@ function LfoEngine:create_lfos()
         if #self.lfo_a_buffer > self.lfo_a_buffer_size then
             table.remove(self.lfo_a_buffer, 1)
         end
+        
+        -- Add point to graph if graph exists
+        if self.lfo_a_graph then
+            self.lfo_a_graph:add_point(self.lfo_a_point_index, scaled)
+            self.lfo_a_point_index = self.lfo_a_point_index + 1
+            if self.lfo_a_point_index > self.lfo_a_buffer_size then
+                self.lfo_a_point_index = 1
+                self.lfo_a_graph:remove_all_points()
+            end
+        end
     end)
 
     -- Create LFO B
@@ -68,6 +82,16 @@ function LfoEngine:create_lfos()
         table.insert(self.lfo_b_buffer, scaled)
         if #self.lfo_b_buffer > self.lfo_b_buffer_size then
             table.remove(self.lfo_b_buffer, 1)
+        end
+        
+        -- Add point to graph if graph exists
+        if self.lfo_b_graph then
+            self.lfo_b_graph:add_point(self.lfo_b_point_index, scaled)
+            self.lfo_b_point_index = self.lfo_b_point_index + 1
+            if self.lfo_b_point_index > self.lfo_b_buffer_size then
+                self.lfo_b_point_index = 1
+                self.lfo_b_graph:remove_all_points()
+            end
         end
     end)
 
@@ -207,6 +231,14 @@ end
 
 function LfoEngine:get_lfo_b_buffer()
     return self.lfo_b_buffer
+end
+
+function LfoEngine:set_lfo_a_graph(graph)
+    self.lfo_a_graph = graph
+end
+
+function LfoEngine:set_lfo_b_graph(graph)
+    self.lfo_b_graph = graph
 end
 
 -- Helper functions to recreate LFOs

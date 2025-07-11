@@ -47,6 +47,9 @@ function PageManager.new()
     
     self.lfo_b_graph = Graph.new(1, 64, "lin", -1, 1, "lin", "line", false, false)
     self.lfo_b_graph:set_position_and_size(10, 15, 108, 30)
+    
+    -- Pass graph references to LFO engine once initialized
+    self.graphs_initialized = false
 
     return self
 end
@@ -181,18 +184,15 @@ function PageManager:draw_lfo_a_page()
     screen.rect(10, 15, 108, 30)
     screen.stroke()
 
-    -- Draw waveform using lib.graph
-    if self.lfo_engine then
-        local buffer = self.lfo_engine:get_lfo_a_buffer()
-        
-        -- Clear and rebuild graph
-        self.lfo_a_graph:remove_all_points()
-        
-        -- Add points from buffer
-        for i, value in ipairs(buffer) do
-            self.lfo_a_graph:add_point(i, value)
-        end
-        
+    -- Initialize graph references if needed
+    if self.lfo_engine and not self.graphs_initialized then
+        self.lfo_engine:set_lfo_a_graph(self.lfo_a_graph)
+        self.lfo_engine:set_lfo_b_graph(self.lfo_b_graph)
+        self.graphs_initialized = true
+    end
+    
+    -- Draw waveform using lib.graph (points added in LFO action)
+    if self.lfo_engine then        
         -- Draw the graph
         self.lfo_a_graph:redraw()
         
@@ -256,18 +256,8 @@ function PageManager:draw_lfo_b_page()
     screen.rect(10, 15, 108, 30)
     screen.stroke()
 
-    -- Draw waveform using lib.graph
-    if self.lfo_engine then
-        local buffer = self.lfo_engine:get_lfo_b_buffer()
-        
-        -- Clear and rebuild graph
-        self.lfo_b_graph:remove_all_points()
-        
-        -- Add points from buffer
-        for i, value in ipairs(buffer) do
-            self.lfo_b_graph:add_point(i, value)
-        end
-        
+    -- Draw waveform using lib.graph (points added in LFO action)
+    if self.lfo_engine then        
         -- Draw the graph
         self.lfo_b_graph:redraw()
         
