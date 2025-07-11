@@ -11,6 +11,10 @@ function LfoEngine.new()
     self.lfo_a_shape = "sine"
     self.lfo_a_depth = 1.0
     self.lfo_a_value = 0
+    
+    -- Waveform buffer for visualization
+    self.lfo_a_buffer = {}
+    self.lfo_a_buffer_size = 64
 
     -- LFO B settings
     self.lfo_b = nil
@@ -18,6 +22,10 @@ function LfoEngine.new()
     self.lfo_b_shape = "triangle"
     self.lfo_b_depth = 1.0
     self.lfo_b_value = 0
+    
+    -- Waveform buffer for visualization
+    self.lfo_b_buffer = {}
+    self.lfo_b_buffer_size = 64
 
     -- Modulation settings
     self.mod_type = "mix"
@@ -40,7 +48,11 @@ function LfoEngine:create_lfos()
     self.lfo_a:set('mode', 'free')
     self.lfo_a:set('period', 1 / self.lfo_a_rate)
     self.lfo_a:set('action', function(scaled, raw)
-        -- No need to store values, use get('scaled') instead
+        -- Add to waveform buffer for visualization
+        table.insert(self.lfo_a_buffer, scaled)
+        if #self.lfo_a_buffer > self.lfo_a_buffer_size then
+            table.remove(self.lfo_a_buffer, 1)
+        end
     end)
 
     -- Create LFO B
@@ -52,7 +64,11 @@ function LfoEngine:create_lfos()
     self.lfo_b:set('mode', 'free')
     self.lfo_b:set('period', 1 / self.lfo_b_rate)
     self.lfo_b:set('action', function(scaled, raw)
-        -- No need to store values, use get('scaled') instead
+        -- Add to waveform buffer for visualization
+        table.insert(self.lfo_b_buffer, scaled)
+        if #self.lfo_b_buffer > self.lfo_b_buffer_size then
+            table.remove(self.lfo_b_buffer, 1)
+        end
     end)
 
     -- Start both LFOs
@@ -185,6 +201,14 @@ function LfoEngine:get_lfo_b_value()
     return 0
 end
 
+function LfoEngine:get_lfo_a_buffer()
+    return self.lfo_a_buffer
+end
+
+function LfoEngine:get_lfo_b_buffer()
+    return self.lfo_b_buffer
+end
+
 -- Helper functions to recreate LFOs
 function LfoEngine:recreate_lfo_a()
     if self.lfo_a then
@@ -199,7 +223,11 @@ function LfoEngine:recreate_lfo_a()
     self.lfo_a:set('mode', 'free')
     self.lfo_a:set('period', 1 / self.lfo_a_rate)
     self.lfo_a:set('action', function(scaled, raw)
-        -- No need to store values, use get('scaled') instead
+        -- Add to waveform buffer for visualization
+        table.insert(self.lfo_a_buffer, scaled)
+        if #self.lfo_a_buffer > self.lfo_a_buffer_size then
+            table.remove(self.lfo_a_buffer, 1)
+        end
     end)
     self.lfo_a:start()
 end
@@ -217,7 +245,11 @@ function LfoEngine:recreate_lfo_b()
     self.lfo_b:set('mode', 'free')
     self.lfo_b:set('period', 1 / self.lfo_b_rate)
     self.lfo_b:set('action', function(scaled, raw)
-        -- No need to store values, use get('scaled') instead
+        -- Add to waveform buffer for visualization
+        table.insert(self.lfo_b_buffer, scaled)
+        if #self.lfo_b_buffer > self.lfo_b_buffer_size then
+            table.remove(self.lfo_b_buffer, 1)
+        end
     end)
     self.lfo_b:start()
 end

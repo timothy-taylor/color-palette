@@ -40,6 +40,13 @@ function PageManager.new()
 
     self.current_page = 1
     self.keyboard_mode = false
+    
+    -- Create graph objects for waveform visualization
+    self.lfo_a_graph = Graph.new(0, 64, "lin", -1, 1, "lin", "line")
+    self.lfo_a_graph:set_position_and_size(10, 15, 108, 30)
+    
+    self.lfo_b_graph = Graph.new(0, 64, "lin", -1, 1, "lin", "line")
+    self.lfo_b_graph:set_position_and_size(10, 15, 108, 30)
 
     return self
 end
@@ -174,30 +181,27 @@ function PageManager:draw_lfo_a_page()
     screen.rect(10, 15, 108, 30)
     screen.stroke()
 
-    -- Show current LFO A value as a simple indicator
+    -- Draw waveform using lib.graph
     if self.lfo_engine then
+        local buffer = self.lfo_engine:get_lfo_a_buffer()
+        
+        -- Clear and rebuild graph
+        self.lfo_a_graph:clear()
+        
+        -- Add points from buffer
+        for i, value in ipairs(buffer) do
+            self.lfo_a_graph:add_point(i - 1, value)
+        end
+        
+        -- Draw the graph
+        screen.level(12)
+        self.lfo_a_graph:redraw()
+        
+        -- Current value indicator
         local lfo_value = self.lfo_engine:get_lfo_a_value()
-        local center_x = 64
-        local center_y = 30
-        local base_radius = 8
-        local mod_radius = lfo_value * 6 -- Can be negative
-        local total_radius = base_radius + mod_radius
-
-        -- Ensure minimum radius
-        if total_radius < 2 then total_radius = 2 end
-
-        -- Vary brightness based on LFO value
-        local brightness = math.floor(8 + (lfo_value * 4))
-        brightness = util.clamp(brightness, 3, 15)
-
-        screen.level(brightness)
-        screen.circle(center_x, center_y, total_radius)
-        screen.stroke()
-
-        -- Value indicator
         screen.level(15)
-        screen.move(center_x, center_y - 5)
-        screen.text_center(string.format("%.2f", lfo_value))
+        screen.move(118, 20)
+        screen.text_right(string.format("%.2f", lfo_value))
     end
 
     -- Parameter display
@@ -253,30 +257,27 @@ function PageManager:draw_lfo_b_page()
     screen.rect(10, 15, 108, 30)
     screen.stroke()
 
-    -- Show current LFO B value as a simple indicator
+    -- Draw waveform using lib.graph
     if self.lfo_engine then
+        local buffer = self.lfo_engine:get_lfo_b_buffer()
+        
+        -- Clear and rebuild graph
+        self.lfo_b_graph:clear()
+        
+        -- Add points from buffer
+        for i, value in ipairs(buffer) do
+            self.lfo_b_graph:add_point(i - 1, value)
+        end
+        
+        -- Draw the graph
+        screen.level(12)
+        self.lfo_b_graph:redraw()
+        
+        -- Current value indicator
         local lfo_value = self.lfo_engine:get_lfo_b_value()
-        local center_x = 64
-        local center_y = 30
-        local base_radius = 8
-        local mod_radius = lfo_value * 6 -- Can be negative
-        local total_radius = base_radius + mod_radius
-
-        -- Ensure minimum radius
-        if total_radius < 2 then total_radius = 2 end
-
-        -- Vary brightness based on LFO value
-        local brightness = math.floor(8 + (lfo_value * 4))
-        brightness = util.clamp(brightness, 3, 15)
-
-        screen.level(brightness)
-        screen.circle(center_x, center_y, total_radius)
-        screen.stroke()
-
-        -- Value indicator
         screen.level(15)
-        screen.move(center_x, center_y - 5)
-        screen.text_center(string.format("%.2f", lfo_value))
+        screen.move(118, 20)
+        screen.text_right(string.format("%.2f", lfo_value))
     end
 
     -- Parameter display
