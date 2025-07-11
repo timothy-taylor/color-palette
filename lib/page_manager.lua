@@ -41,12 +41,11 @@ function PageManager.new()
     self.current_page = 1
     self.keyboard_mode = false
     
-    -- Create graph objects for waveform visualization
-    self.lfo_a_graph = Graph.new(0, 64, "lin", -1, 1, "lin", "line")
-    self.lfo_a_graph:set_position_and_size(10, 15, 108, 30)
-    
-    self.lfo_b_graph = Graph.new(0, 64, "lin", -1, 1, "lin", "line")
-    self.lfo_b_graph:set_position_and_size(10, 15, 108, 30)
+    -- Waveform drawing settings
+    self.waveform_x = 10
+    self.waveform_y = 15
+    self.waveform_width = 108
+    self.waveform_height = 30
 
     return self
 end
@@ -181,21 +180,25 @@ function PageManager:draw_lfo_a_page()
     screen.rect(10, 15, 108, 30)
     screen.stroke()
 
-    -- Draw waveform using lib.graph
+    -- Draw waveform manually
     if self.lfo_engine then
         local buffer = self.lfo_engine:get_lfo_a_buffer()
         
-        -- Clear and rebuild graph
-        self.lfo_a_graph:clear()
-        
-        -- Add points from buffer
-        for i, value in ipairs(buffer) do
-            self.lfo_a_graph:add_point(i - 1, value)
+        if #buffer > 1 then
+            screen.level(12)
+            
+            -- Draw connected line waveform
+            for i = 1, #buffer - 1 do
+                local x1 = self.waveform_x + (i - 1) * (self.waveform_width / 64)
+                local y1 = self.waveform_y + self.waveform_height/2 - (buffer[i] * self.waveform_height/2)
+                local x2 = self.waveform_x + i * (self.waveform_width / 64)
+                local y2 = self.waveform_y + self.waveform_height/2 - (buffer[i + 1] * self.waveform_height/2)
+                
+                screen.move(x1, y1)
+                screen.line(x2, y2)
+                screen.stroke()
+            end
         end
-        
-        -- Draw the graph
-        screen.level(12)
-        self.lfo_a_graph:redraw()
         
         -- Current value indicator
         local lfo_value = self.lfo_engine:get_lfo_a_value()
@@ -257,21 +260,25 @@ function PageManager:draw_lfo_b_page()
     screen.rect(10, 15, 108, 30)
     screen.stroke()
 
-    -- Draw waveform using lib.graph
+    -- Draw waveform manually
     if self.lfo_engine then
         local buffer = self.lfo_engine:get_lfo_b_buffer()
         
-        -- Clear and rebuild graph
-        self.lfo_b_graph:clear()
-        
-        -- Add points from buffer
-        for i, value in ipairs(buffer) do
-            self.lfo_b_graph:add_point(i - 1, value)
+        if #buffer > 1 then
+            screen.level(12)
+            
+            -- Draw connected line waveform
+            for i = 1, #buffer - 1 do
+                local x1 = self.waveform_x + (i - 1) * (self.waveform_width / 64)
+                local y1 = self.waveform_y + self.waveform_height/2 - (buffer[i] * self.waveform_height/2)
+                local x2 = self.waveform_x + i * (self.waveform_width / 64)
+                local y2 = self.waveform_y + self.waveform_height/2 - (buffer[i + 1] * self.waveform_height/2)
+                
+                screen.move(x1, y1)
+                screen.line(x2, y2)
+                screen.stroke()
+            end
         end
-        
-        -- Draw the graph
-        screen.level(12)
-        self.lfo_b_graph:redraw()
         
         -- Current value indicator
         local lfo_value = self.lfo_engine:get_lfo_b_value()
