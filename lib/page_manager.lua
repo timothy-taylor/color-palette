@@ -85,6 +85,11 @@ end
 -- Main draw function
 function PageManager:draw_current_page()
     screen.clear()
+    
+    -- Update LFO visualization buffers
+    if self.lfo_engine then
+        self.lfo_engine:update_visualization()
+    end
 
     -- Page title
     screen.level(15)
@@ -175,8 +180,8 @@ function PageManager:draw_lfo_a_page()
     screen.stroke()
 
     
-    -- Draw waveform using lib.graph (points added in LFO action)
-    if self.lfo_engine and self.lfo_engine.lfo_a_graph then        
+    -- Draw waveform using lib.graph
+    if self.lfo_engine and self.lfo_engine.lfo_a_graph then
         -- Draw the graph
         self.lfo_engine.lfo_a_graph:redraw()
         

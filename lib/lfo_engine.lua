@@ -14,10 +14,8 @@ function LfoEngine.new()
 
     -- Graph settings for visualization
     self.lfo_a_graph = nil
-    self.lfo_a_graph_size = 64
-    self.lfo_a_graph_index = 1
-    self.lfo_a_sample_counter = 0
-    self.lfo_a_sample_rate = 4  -- Update graph every 4 LFO samples
+    self.lfo_a_buffer = {}
+    self.lfo_a_buffer_size = 64
 
     -- LFO B settings
     self.lfo_b = nil
@@ -28,10 +26,8 @@ function LfoEngine.new()
 
     -- Graph settings for visualization
     self.lfo_b_graph = nil
-    self.lfo_b_graph_size = 64
-    self.lfo_b_graph_index = 1
-    self.lfo_b_sample_counter = 0
-    self.lfo_b_sample_rate = 4  -- Update graph every 4 LFO samples
+    self.lfo_b_buffer = {}
+    self.lfo_b_buffer_size = 64
 
     -- Modulation settings
     self.mod_type = "mix"
@@ -54,19 +50,7 @@ function LfoEngine:create_lfos()
     self.lfo_a:set('mode', 'free')
     self.lfo_a:set('period', 1 / self.lfo_a_rate)
     self.lfo_a:set('action', function(scaled, raw)
-        if self.lfo_a_graph then
-            -- Only update graph every few samples to reduce update frequency
-            self.lfo_a_sample_counter = self.lfo_a_sample_counter + 1
-            if self.lfo_a_sample_counter >= self.lfo_a_sample_rate then
-                self.lfo_a_sample_counter = 0
-                -- Update existing point using edit_point (index, px, py)
-                self.lfo_a_graph:edit_point(self.lfo_a_graph_index, nil, scaled)
-                self.lfo_a_graph_index = self.lfo_a_graph_index + 1
-                if self.lfo_a_graph_index > self.lfo_a_graph_size then
-                    self.lfo_a_graph_index = 1
-                end
-            end
-        end
+        self.lfo_a_value = scaled
     end)
 
     -- Create LFO B
@@ -78,19 +62,7 @@ function LfoEngine:create_lfos()
     self.lfo_b:set('mode', 'free')
     self.lfo_b:set('period', 1 / self.lfo_b_rate)
     self.lfo_b:set('action', function(scaled, raw)
-        if self.lfo_b_graph then
-            -- Only update graph every few samples to reduce update frequency
-            self.lfo_b_sample_counter = self.lfo_b_sample_counter + 1
-            if self.lfo_b_sample_counter >= self.lfo_b_sample_rate then
-                self.lfo_b_sample_counter = 0
-                -- Update existing point using edit_point
-                self.lfo_b_graph:edit_point(self.lfo_b_graph_index, nil, scaled)
-                self.lfo_b_graph_index = self.lfo_b_graph_index + 1
-                if self.lfo_b_graph_index > self.lfo_b_graph_size then
-                    self.lfo_b_graph_index = 1
-                end
-            end
-        end
+        self.lfo_b_value = scaled
     end)
 
     -- Start both LFOs
@@ -225,20 +197,38 @@ end
 
 function LfoEngine:set_lfo_a_graph(graph)
     self.lfo_a_graph = graph
-    if graph then
-        -- Initialize all graph points to 0
-        for i = 1, self.lfo_a_graph_size do
-            self.lfo_a_graph:add_point(i, 0)
-        end
-    end
 end
 
 function LfoEngine:set_lfo_b_graph(graph)
     self.lfo_b_graph = graph
-    if graph then
-        -- Initialize all graph points to 0
-        for i = 1, self.lfo_b_graph_size do
-            self.lfo_b_graph:add_point(i, 0)
+end
+
+function LfoEngine:update_visualization()
+    -- Update LFO A buffer
+    table.insert(self.lfo_a_buffer, self.lfo_a_value)
+    if #self.lfo_a_buffer > self.lfo_a_buffer_size then
+        table.remove(self.lfo_a_buffer, 1)
+    end
+    
+    -- Update LFO B buffer
+    table.insert(self.lfo_b_buffer, self.lfo_b_value)
+    if #self.lfo_b_buffer > self.lfo_b_buffer_size then
+        table.remove(self.lfo_b_buffer, 1)
+    end
+    
+    -- Update graph A
+    if self.lfo_a_graph then
+        self.lfo_a_graph:remove_all_points()
+        for i, value in ipairs(self.lfo_a_buffer) do
+            self.lfo_a_graph:add_point(i, value)
+        end
+    end
+    
+    -- Update graph B
+    if self.lfo_b_graph then
+        self.lfo_b_graph:remove_all_points()
+        for i, value in ipairs(self.lfo_b_buffer) do
+            self.lfo_b_graph:add_point(i, value)
         end
     end
 end
@@ -249,10 +239,6 @@ function LfoEngine:recreate_lfo_a()
         self.lfo_a:stop()
     end
 
-    -- Reset graph index and sample counter
-    self.lfo_a_graph_index = 1
-    self.lfo_a_sample_counter = 0
-
     self.lfo_a = Lfo.new()
     self.lfo_a:set('shape', self.lfo_a_shape)
     self.lfo_a:set('min', -1)
@@ -261,19 +247,7 @@ function LfoEngine:recreate_lfo_a()
     self.lfo_a:set('mode', 'free')
     self.lfo_a:set('period', 1 / self.lfo_a_rate)
     self.lfo_a:set('action', function(scaled, raw)
-        -- Update graph directly using circular buffer
-        if self.lfo_a_graph then
-            -- Only update graph every few samples to reduce update frequency
-            self.lfo_a_sample_counter = self.lfo_a_sample_counter + 1
-            if self.lfo_a_sample_counter >= self.lfo_a_sample_rate then
-                self.lfo_a_sample_counter = 0
-                self.lfo_a_graph:edit_point(self.lfo_a_graph_index, nil, scaled)
-                self.lfo_a_graph_index = self.lfo_a_graph_index + 1
-                if self.lfo_a_graph_index > self.lfo_a_graph_size then
-                    self.lfo_a_graph_index = 1
-                end
-            end
-        end
+        self.lfo_a_value = scaled
     end)
     self.lfo_a:start()
 end
@@ -283,10 +257,6 @@ function LfoEngine:recreate_lfo_b()
         self.lfo_b:stop()
     end
 
-    -- Reset graph index and sample counter
-    self.lfo_b_graph_index = 1
-    self.lfo_b_sample_counter = 0
-
     self.lfo_b = Lfo.new()
     self.lfo_b:set('shape', self.lfo_b_shape)
     self.lfo_b:set('min', -1)
@@ -295,19 +265,7 @@ function LfoEngine:recreate_lfo_b()
     self.lfo_b:set('mode', 'free')
     self.lfo_b:set('period', 1 / self.lfo_b_rate)
     self.lfo_b:set('action', function(scaled, raw)
-        -- Update graph directly using circular buffer
-        if self.lfo_b_graph then
-            -- Only update graph every few samples to reduce update frequency
-            self.lfo_b_sample_counter = self.lfo_b_sample_counter + 1
-            if self.lfo_b_sample_counter >= self.lfo_b_sample_rate then
-                self.lfo_b_sample_counter = 0
-                self.lfo_b_graph:edit_point(self.lfo_b_graph_index, nil, scaled)
-                self.lfo_b_graph_index = self.lfo_b_graph_index + 1
-                if self.lfo_b_graph_index > self.lfo_b_graph_size then
-                    self.lfo_b_graph_index = 1
-                end
-            end
-        end
+        self.lfo_b_value = scaled
     end)
     self.lfo_b:start()
 end
