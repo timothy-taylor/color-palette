@@ -15,7 +15,6 @@ function LfoEngine.new()
     -- Waveform buffer for visualization
     self.lfo_a_buffer = {}
     self.lfo_a_buffer_size = 64
-    self.lfo_a_point_index = 1
     self.lfo_a_graph = nil
 
     -- LFO B settings
@@ -28,7 +27,6 @@ function LfoEngine.new()
     -- Waveform buffer for visualization
     self.lfo_b_buffer = {}
     self.lfo_b_buffer_size = 64
-    self.lfo_b_point_index = 1
     self.lfo_b_graph = nil
 
     -- Modulation settings
@@ -58,14 +56,13 @@ function LfoEngine:create_lfos()
             table.remove(self.lfo_a_buffer, 1)
         end
         
-        -- Add point to graph if graph exists
+        -- Update graph if exists
         if self.lfo_a_graph then
-            self.lfo_a_graph:add_point(self.lfo_a_point_index, scaled)
-            self.lfo_a_point_index = self.lfo_a_point_index + 1
-            if self.lfo_a_point_index > self.lfo_a_buffer_size then
-                self.lfo_a_point_index = 1
-                self.lfo_a_graph:remove_all_points()
+            local points = {}
+            for i, v in ipairs(self.lfo_a_buffer) do
+                points[i] = {x = i, y = v}
             end
+            self.lfo_a_graph:set_points(points)
         end
     end)
 
@@ -84,14 +81,13 @@ function LfoEngine:create_lfos()
             table.remove(self.lfo_b_buffer, 1)
         end
         
-        -- Add point to graph if graph exists
+        -- Update graph if exists
         if self.lfo_b_graph then
-            self.lfo_b_graph:add_point(self.lfo_b_point_index, scaled)
-            self.lfo_b_point_index = self.lfo_b_point_index + 1
-            if self.lfo_b_point_index > self.lfo_b_buffer_size then
-                self.lfo_b_point_index = 1
-                self.lfo_b_graph:remove_all_points()
+            local points = {}
+            for i, v in ipairs(self.lfo_b_buffer) do
+                points[i] = {x = i, y = v}
             end
+            self.lfo_b_graph:set_points(points)
         end
     end)
 
